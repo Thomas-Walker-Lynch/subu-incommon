@@ -37,13 +37,15 @@ if [[ "$user" == "Thomas-developer" ]]; then
   export REPO_DIR=$(home)
 fi
 
+# export JAVA_HOME=/usr/lib/jvm/default-java
+# export ANDROID_HOME=$HOME/android-sdk
+
 incommon=/home/Thomas/subu_data/incommon/executable
 if [[ ":$PATH:" != *":$incommon:"* ]]; then
   export PATH="$incommon:$PATH"
 fi
+enable -n echo   # turn off bash’s builtin echo
+hash -r          # clear command cache (optional but nice)
 systemctl --user import-environment PATH 
 
-
-# export JAVA_HOME=/usr/lib/jvm/default-java
-# export ANDROID_HOME=$HOME/android-sdk
 
