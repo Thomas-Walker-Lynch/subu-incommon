@@ -3,16 +3,9 @@
 # because in x11 bash_profile is not getting sourced, so I've
 # temporarily copied it here
 
-incommon=/home/Thomas/subu_data/incommon/executable
-if [[ ":$PATH:" != *":$incommon:"* ]]; then
-  export PATH="$incommon:$PATH"
-fi
-systemctl --user import-environment PATH 
-
-
 # Localizations and editor preferences
 export EDITOR=emacs
-export PS_FORMAT='user:15,group:15,pid,command'
+export PS_FORMAT='user:25,group:25,pid,command'
 
 # Shell behaviors
 shopt -s histappend
@@ -29,10 +22,8 @@ export PS2="$PPS2"
 # Aliases
 alias emacs='emacs --title="${USER} ${PROMPT_DECOR}:$ROLE ${MODE}"'
 alias pstree='pstree -lp'
-alias printenv='printenv | awk '\''{gsub(/\n/, "\\n")}1'\'' | sort'
 alias ls='ls -a -h --time-style=long-iso'
 alias zzz="kill -STOP \$\$"
-alias ps="ps -eo user:20,group:20,pid,command"
 
 # Visual tweaks — only if graphical session is available
 if [[ -n "$DISPLAY" ]] && command -v gsettings >/dev/null 2>&1; then
@@ -45,6 +36,13 @@ fi
 if [[ "$user" == "Thomas-developer" ]]; then 
   export REPO_DIR=$(home)
 fi
+
+incommon=/home/Thomas/subu_data/incommon/executable
+if [[ ":$PATH:" != *":$incommon:"* ]]; then
+  export PATH="$incommon:$PATH"
+fi
+systemctl --user import-environment PATH 
+
 
 # export JAVA_HOME=/usr/lib/jvm/default-java
 # export ANDROID_HOME=$HOME/android-sdk
