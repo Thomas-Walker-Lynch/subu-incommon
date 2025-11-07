@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Run permission script after a merge (e.g., git pull)
+
+repo_home="$(git rev-parse --show-toplevel)"
+
+if [ -x "$repo_home/permission.sh" ]; then
+  "$repo_home/permission.sh"
+fi
+

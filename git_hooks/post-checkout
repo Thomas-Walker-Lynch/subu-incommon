@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Run permission script after a rebase or amend
+
+repo_home="$(git rev-parse --show-toplevel)"
+
+if [ -x "$repo_home/permission.sh" ]; then
+ "$repo_home/permission.sh"
+fi

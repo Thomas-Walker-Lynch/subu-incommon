@@ -1,6 +1,6 @@
 #!/bin/bash
 # permissions.sh
-# do this after a git clone
+# this is called by a git post merge hook, don't move it
 # Make incommon/{executable,library} group-readable and non-group-writable,
 # preserving existing execute bits (via X).
 
