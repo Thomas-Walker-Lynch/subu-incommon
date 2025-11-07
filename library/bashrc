@@ -33,7 +33,7 @@ if [[ -n "$DISPLAY" ]] && command -v gsettings >/dev/null 2>&1; then
 fi
 
 # Developer-specific env
-if [[ "$user" == "Thomas-developer" ]]; then 
+if [[ "$USER" == "Thomas-developer" ]]; then 
   export REPO_DIR=$(home)
 fi
 
