@@ -2,16 +2,31 @@
 """
 echo replacement in Python
 
-Options:
-  -n    do not output the trailing newline
-  -e    enable interpretation of backslash escapes
-  -E    disable interpretation of backslash escapes (default)
-  -v    vertical list (one argument per line)
-  -s    sort arguments (locale-aware, like ls)
+Options (flags come before the second '-'):
+  -n           do not output the trailing newline
+  -e           enable interpretation of backslash escapes
+  -E           disable interpretation of backslash escapes (default)
+  -v           vertical list (one item per line)
+  -s           sort items (locale-aware, like ls)
+
+Separator syntax:
+  Flags and separator are combined in a single options word.
+  The separator string (possibly multi-character) comes after the
+  SECOND '-' in that word.
+
+Examples:
+  -s-:        sort, separator = ":"
+  -sv-,       sort + vertical, separator = ","
+  -vs-,       vertical + sort, separator = ","
+  -v-abc      vertical, separator = "abc"
+  --::        no flags, separator = "::"
 
 Combinations:
-  -vs / -sv  sort arguments, then print vertically
-  -s (alone) sorted, multi-column output (like ls)
+  echo -v a b c          # vertical
+  echo -s c b a          # sorted columns
+  echo -sv-: "$PATH"     # PATH entries, split on ":", sorted vertical
+  echo -s-: "$PATH"      # PATH entries, split on ":", sorted columns
+  echo -v-: "$PATH"      # PATH entries, vertical, original order
 """
 
 import math
@@ -66,13 +81,20 @@ def format_columns(items, width):
   return "\n".join(lines)
 
 
-def echo(args, interpret_escapes, no_newline, vertical, sort_items):
+def echo(args, interpret_escapes, no_newline, vertical, sort_items, separator):
   """
   Core echo implementation.
   Writes to stdout and returns an exit status code.
   """
   if interpret_escapes:
     args = [decode_escapes(a) for a in args]
+
+  # Split on separator if requested
+  if separator is not None:
+    split_args = []
+    for a in args:
+      split_args.extend(a.split(separator))
+    args = split_args
 
   if sort_items:
     # Locale-aware sort, to match ls behavior under current locale
@@ -104,13 +126,13 @@ def CLI(argv):
   try:
     locale.setlocale(locale.LC_COLLATE, "")
   except locale.Error:
-    # If locale is broken, we just fall back to C collation
     pass
 
   interpret_escapes = False
   no_newline = False
   vertical = False
   sort_items = False
+  separator = None
 
   args = []
   stop_opts = False
@@ -119,44 +141,60 @@ def CLI(argv):
   while i < len(argv):
     arg = argv[i]
 
-    if stop_opts:
-      args.append(arg)
-      i += 1
-      continue
-
-    if arg == "--":
+    # End of options marker
+    if not stop_opts and arg == "--":
       stop_opts = True
       i += 1
       continue
 
-    if arg.startswith("-") and len(arg) > 1:
+    if not stop_opts and arg.startswith("-") and len(arg) > 1:
       unknown = False
-      for ch in arg[1:]:
+      separator_mark_seen = False
+
+      # Scan characters after the first '-'
+      j = 1
+      while j < len(arg):
+        ch = arg[j]
+
+        # Second '-' in this arg => separator marker
+        if ch == "-" and not separator_mark_seen:
+          separator_mark_seen = True
+          # Separator is the rest of the string after this '-'
+          separator = arg[j + 1 :] if j + 1 < len(arg) else ""
+          # Once a separator is specified, no more flags in this arg
+          break
+
         if ch == "n":
           no_newline = True
         elif ch == "e":
           interpret_escapes = True
         elif ch == "E":
           interpret_escapes = False
-        elif ch == "v":
-          vertical = True
         elif ch == "s":
           sort_items = True
+        elif ch == "v":
+          vertical = True
         else:
+          # Unknown flag: treat the whole arg as a literal argument
           unknown = True
           break
+
+        j += 1
 
       if unknown:
         args.append(arg)
         stop_opts = True
+        i += 1
+        continue
 
       i += 1
       continue
 
+    # Non-option or options already ended
     args.append(arg)
     i += 1
 
-  return echo(args, interpret_escapes, no_newline, vertical, sort_items)
+  return echo(args, interpret_escapes, no_newline, vertical, sort_items, separator)
 
 
 if __name__ == "__main__":
