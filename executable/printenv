@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""
+printenv replacement in Python
+
+Behavior:
+  - With no NAME arguments: print all environment variables as NAME=value,
+    sorted by NAME.
+  - With one or more NAME arguments: print only their values (one per line),
+    in the order given.
+
+Options:
+  -0, --null            separate entries with NUL instead of newline
+  -q, --quote-newlines  print embedded newlines as literal "\\n"
+  -h, --help            show usage
+"""
+
+import os
+import sys
+from textwrap import dedent
+
+
+def usage(prog):
+  return dedent(f"""\
+    Usage: {prog} [OPTION]... [NAME]...
+
+    With no NAME arguments, print all environment variables as NAME=value,
+    sorted by NAME.
+
+    With one or more NAME arguments, print only their values (one per line),
+    in the order given.
+
+    Options:
+      -0, --null            separate entries with NUL instead of newline
+      -q, --quote-newlines  print embedded newlines as literal "\\n"
+      -h, --help            display this help and exit
+
+    Notes:
+      - This implementation sorts variables by NAME by default.
+      - The original system printenv is usually at /usr/bin/printenv
+        if you ever need the unsorted version.
+    """)
+
+
+def printenv(null_terminate, quote_newlines, names, prog):
+  """
+  Core printenv implementation.
+  Uses os.environ directly, writes to stdout, returns exit status.
+  """
+  sep = "\0" if null_terminate else "\n"
+
+  def fmt_value(val):
+    if quote_newlines:
+      return val.replace("\n", "\\n")
+    return val
+
+  if names:
+    for name in names:
+      if name in os.environ:
+        out = fmt_value(os.environ[name])
+        sys.stdout.write(out)
+      sys.stdout.write(sep)
+    return 0
+
+  items = sorted(os.environ.items(), key=lambda kv: kv[0])
+
+  for name, val in items:
+    line = f"{name}={fmt_value(val)}"
+    sys.stdout.write(line)
+    sys.stdout.write(sep)
+
+  return 0
+
+
+def CLI(argv):
+  """
+  Command-line interface: parse argv, then call printenv().
+  """
+  prog = argv[0] if argv else "printenv"
+
+  null_terminate = False
+  quote_newlines = False
+  names = []
+
+  args = argv[1:]
+  i = 0
+
+  while i < len(args):
+    arg = args[i]
+
+    if arg == "--":
+      names.extend(args[i + 1 :])
+      break
+
+    if arg in ("-h", "--help"):
+      sys.stdout.write(usage(prog))
+      return 0
+
+    if arg in ("-0", "--null"):
+      null_terminate = True
+      i += 1
+      continue
+
+    if arg in ("-q", "--quote-newlines"):
+      quote_newlines = True
+      i += 1
+      continue
+
+    if arg.startswith("-") and len(arg) > 1:
+      sys.stderr.write(f"{prog}: unknown option: {arg}\n")
+      sys.stderr.write(f"Try '{prog} --help' for more information.\n")
+      return 1
+
+    names.append(arg)
+    names.extend(args[i + 1 :])
+    break
+
+  return printenv(null_terminate, quote_newlines, names, prog)
+
+
+if __name__ == "__main__":
+  raise SystemExit(CLI(sys.argv))

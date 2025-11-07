@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Fix permissions script
+# Usage: ./fix_permissions.sh <directory>
+# Recursively makes the directory and its contents group readable
+# and if user executable, also group executable.
+
+# Check if argument is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <directory>"
+  exit 1
+fi
+
+# Directory to fix
+target_dir="$1"
+
+# Check if the directory exists
+if [ ! -d "$target_dir" ]; then
+  echo "Error: Directory '$target_dir' does not exist."
+  exit 1
+fi
+
+# Fix permissions
+echo "Fixing permissions for directory: $target_dir"
+find "$target_dir" -type f -exec chmod g+r {} \;   # Make files group-readable
+find "$target_dir" -type d -exec chmod g+rx {} \; # Make directories group-readable and executable
+find "$target_dir" -perm -u+x -exec chmod g+x {} \; # Make group executable if user executable
+
+echo "Permissions fixed for '$target_dir'."

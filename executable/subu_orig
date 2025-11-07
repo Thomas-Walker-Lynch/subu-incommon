@@ -1,0 +1,47 @@
+#!/bin/bash
+# launch_subu.sh — Start a subuser shell (console or GUI-aware)
+
+set -euo pipefail
+
+subu="$1"
+if [ -z "$subu" ]; then
+  echo "❌ No subuser name supplied"
+  exit 1
+fi
+
+subu_user="Thomas-$subu"
+subu_dir="/home/Thomas/subu_data/$subu"
+
+# Enable lingering to survive logout
+sudo loginctl enable-linger "$subu_user"
+
+# Check for X11 or Wayland
+has_display=false
+if [[ "${DISPLAY:-}" != "" ]]; then
+  has_display=true
+  echo "🖥 Graphical session detected: $DISPLAY"
+else
+  echo "🖳 Console session (no X detected)"
+fi
+
+if $has_display; then
+  # Start subuser shell with full GUI + DBus + user session
+  sudo machinectl shell "$subu_user"@ /bin/bash -c "
+    export DISPLAY='$DISPLAY';
+    if [[ $use_xauth -eq 1 ]]; then
+      export XAUTHORITY='$subu_Xauthority_path';
+    fi
+
+    export XDG_RUNTIME_DIR='/run/user/$(id -u "$subu_user")';
+
+    if command -v /usr/bin/gnome-keyring-daemon &>/dev/null; then
+      eval \$(/usr/bin/gnome-keyring-daemon --start)
+      export GNOME_KEYRING_CONTROL GNOME_KEYRING_PID
+    fi
+
+    exec dbus-run-session -- bash -l
+  "
+else
+  # Start subuser shell without X env
+  sudo machinectl shell "$subu_user"@ /bin/bash -l
+fi

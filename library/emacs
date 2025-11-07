@@ -1,0 +1,14 @@
+
+(when t
+  (message ".emacs/emacs")
+  (let (
+	(el-dir (concat "el/" (file-name-directory load-file-name)))
+	)
+    (load (concat el-dir "el/lisp.el"))
+    (load (concat el-dir "el/main.el"))
+    (load (concat el-dir "el/key.el"))
+    (load (concat el-dir "el/package.el"))
+    (load (concat el-dir "el/tramp.el"))
+    (load (concat el-dir "el/programming.el"))
+  )
+)

@@ -1,0 +1,6 @@
+
+;; Load the common configuration file
+(load "/home/Thomas-mastu/incommon/library/emacs")
+
+;; User-specific configurations go below this line
+

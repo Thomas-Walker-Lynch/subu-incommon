@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# cat_named — print a header + filename + UTC mtime, then file contents
+
+set -euo pipefail
+
+hr() { printf '%*s\n' 80 '' | tr ' ' '-'; }
+
+if [[ $# -eq 0 ]]; then
+  echo "usage: $0 <file...>" >&2
+  exit 1
+fi
+
+for f in "$@"; do
+  if [[ ! -f "$f" ]]; then
+    echo "skip (not a regular file): $f" >&2
+    continue
+  fi
+  ts="$(date -u -r "$f" +'%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || stat -c '%y' "$f" 2>/dev/null)"
+  hr
+  printf '%s %s\n\n' "$f" "$ts"
+  cat -- "$f"
+  printf '\n'
+done

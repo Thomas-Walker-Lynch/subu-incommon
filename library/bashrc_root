@@ -1,0 +1,27 @@
+# .bashrc
+
+# because in x11 bash_profile is not getting sourced, so I've
+# temporarily copied it here
+
+# Localizations and editor preferences
+export EDITOR=emacs
+export PS_FORMAT='user:20,group:20,pid,command'
+
+# Shell behaviors
+shopt -s histappend
+shopt -s checkwinsize
+HISTSIZE=400
+HISTFILESIZE=2000
+
+# Prompt and visual environment
+export PPS1='\n$(/usr/bin/date -u +"%Y-%m-%d %H:%M:%SZ") [root] \u@\h\n§$(pwd)§\n# '
+export PPS2='>> '
+export PS1="$PPS1"
+export PS2="$PPS2"
+
+# Aliases
+alias pstree='pstree -lp'
+alias ls='ls -a -h --time-style=long-iso'
+alias zzz="kill -STOP \$\$"
+
+

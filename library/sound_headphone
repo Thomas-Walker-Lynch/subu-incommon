@@ -1,0 +1,113 @@
+
+If we use the terminology state and nation
+
+both ...
+
+taiwan contested
+
+the chinese have referred to officially as ancient sacred territory
+the taiwanse
+
+one government two system .. so in an uncontested manner we can refer
+to Taiwan as that second system.
+
+due to this desparaty any community wiki article on Taiwan will of course present unique challenges..
+
+today's political situation is not unique, similar situation in Qing era
+
+
+systemctl --user restart pipewire pipewire-pulse wireplumber
+
+pactl set-default-source alsa_input.usb-Logi_USB_Headset_Logi_USB_Headset-00.mono-fallback
+
+
+
+
+pactl list sinks short
+pactl list sources short
+
+pactl set-default-sink <sink_name_or_index>
+pactl set-default-source <source_name_or_index>
+
+----
+for aldervine or whatever it is called, to work (these will already be installed)
+dnf install xdg-desktop-portal xdg-desktop-portal-gtk
+
+as user:
+systemctl --user restart xdg-desktop-portal
+
+
+
+
+# set defaults to the current device
+# pactl move-sink-input <input_index> <sink_name_or_index>
+# pactl move-source-output <output_index> <source_name_or_index>
+
+
+Yes, you can use pactl or alsamixer to set the microphone and speaker devices on Fedora. Here's how:
+
+Using pactl (PulseAudio):
+List available sinks (speakers):
+
+bash
+Copy code
+pactl list sinks short
+Identify the sink (speaker) you'd like to use. Note its name or index.
+
+Set the default sink (speaker):
+
+bash
+Copy code
+pactl set-default-sink <sink_name_or_index>
+List available sources (microphones):
+
+bash
+Copy code
+pactl list sources short
+Identify the source (microphone) you'd like to use. Note its name or index.
+
+Set the default source (microphone):
+
+bash
+Copy code
+pactl set-default-source <source_name_or_index>
+Move currently active streams to the new default sink/source: For sink:
+
+bash
+Copy code
+pactl move-sink-input <input_index> <sink_name_or_index>
+For source:
+
+bash
+Copy code
+pactl move-source-output <output_index> <source_name_or_index>
+You can find input/output indices using:
+
+bash
+Copy code
+pactl list sink-inputs
+pactl list source-outputs
+Using alsamixer (for ALSA directly):
+Open alsamixer:
+bash
+Copy code
+alsamixer
+Press F6 to select the sound card.
+Use arrow keys to navigate and adjust volumes or toggle input/output devices.
+Automating Device Selection:
+To make this persistent across reboots:
+
+Create or edit a PulseAudio configuration file:
+bash
+Copy code
+nano ~/.config/pulse/default.pa
+Add lines to set your preferred devices:
+text
+Copy code
+set-default-sink <sink_name>
+set-default-source <source_name>
+Restart PulseAudio:
+bash
+Copy code
+systemctl --user restart pulseaudio
+

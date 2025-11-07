@@ -1,0 +1,7 @@
+#!/bin/bash
+export PATH="/home/Thomas/subu_data/incommon/executable:$PATH"
+systemctl --user import-environment PATH 
+if [ -f "$HOME/.bashrc" ]; then
+  . "$HOME/.bashrc"
+fi
+

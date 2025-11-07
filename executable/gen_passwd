@@ -1,0 +1,96 @@
+#!/usr/bin/python3
+
+#--------------------------------------------------------------------------------
+# generate a random string length n of form
+#    "" | [A-Za-z^IloO] | [A-Za-z^IloO][0-9A-Za-z_-^IloO01]*[A-Za-z^IloO]
+#
+
+import sys
+import random
+
+#debug = True
+debug = False
+
+# note missing IloO01.
+# period and comman might be difficult, light period might be missed
+# capital I in san-serif font looks like number 1.
+# zero and oh of course
+# SNCF does not take an & as a special hmm.
+chars_alpha_small = "abcdefghijkmnpqrstuvwxz"
+chars_alpha_big = "ABCDEFGHJKLMNPQRSTUVWXYZ"
+chars_special = "+-_$.,;?"
+chars_numeric = "23456789"
+
+sets_leftmost=[chars_alpha_small ,chars_alpha_big]
+sets_standard=[chars_alpha_small ,chars_alpha_big ,chars_special ,chars_numeric]
+sets_rightmost=[chars_alpha_small ,chars_alpha_big ,chars_numeric]
+
+def set_psets(sets):
+  len_sum = sum(len(x) for x in sets)
+  psets = [len(x)/len_sum + 1e-7 for x in sets]
+  if debug: print("psets" ,psets ,"sum:" ,sum(psets))
+  return psets
+
+def choose_set(sets):
+  psets = set_psets(sets)
+  x = random.random()
+  if debug: print("x:" ,x)
+  if len(psets) == 0: return 0
+  p = psets[0]
+  choice = len(psets) - 1
+  i = 0
+  while i != len(psets) - 1:
+    if x <= p : 
+      choice = i
+      break
+    i += 1
+    p += psets[i]
+  if debug: print("choice:" ,choice)
+  return choice
+
+def get_char_set(set):
+  index = random.randrange(0 ,len(set))
+  return set[index]
+
+def get_char(sets):
+  set = sets[choose_set(sets)]
+  return get_char_set(set)
+  
+def get_string(n):
+  if n < 0 : raise Exception("string called with negative length")
+  if n == 0: return ""
+  if n == 1: return get_char_set(chars_alpha)
+
+  result = ""
+  result += get_char(sets_leftmost)
+  for _ in range(n-2): result += get_char(sets_standard)
+  result += get_char(sets_rightmost)
+
+  return result
+
+def get_passwd(n ,strict):
+  s = get_string(n)
+  while strict:
+    has_special = any(i in s for i in chars_special)
+    has_numeric = any(i in s for i in chars_numeric)
+    if debug: print("strict:" ,has_special ,has_numeric)
+    if has_special and has_numeric:
+      break
+    s = get_string(n)
+  return s
+
+strict = False
+n=9
+for arg in sys.argv[1:]:
+  if arg.isdigit(): n = int(arg)
+  if arg == "strict": strict = True
+
+if debug:
+  print("n:" ,n)
+  print("strict:" ,strict)
+  
+pw = get_passwd(n ,strict)
+print(pw)
+sys.exit(0)
+
+

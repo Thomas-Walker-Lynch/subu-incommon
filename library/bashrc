@@ -1,0 +1,51 @@
+# .bashrc
+
+# because in x11 bash_profile is not getting sourced, so I've
+# temporarily copied it here
+
+incommon=/home/Thomas/subu_data/incommon/executable
+if [[ ":$PATH:" != *":$incommon:"* ]]; then
+  export PATH="$incommon:$PATH"
+fi
+systemctl --user import-environment PATH 
+
+
+# Localizations and editor preferences
+export EDITOR=emacs
+export PS_FORMAT='user:15,group:15,pid,command'
+
+# Shell behaviors
+shopt -s histappend
+shopt -s checkwinsize
+HISTSIZE=400
+HISTFILESIZE=2000
+
+# Prompt and visual environment
+export PPS1='\n$(Z) [$PROMPT_DECOR:$ROLE] \u@\h\n§$(pwd)§\n> '
+export PPS2='>> '
+export PS1="$PPS1"
+export PS2="$PPS2"
+
+# Aliases
+alias emacs='emacs --title="${USER} ${PROMPT_DECOR}:$ROLE ${MODE}"'
+alias pstree='pstree -lp'
+alias printenv='printenv | awk '\''{gsub(/\n/, "\\n")}1'\'' | sort'
+alias ls='ls -a -h --time-style=long-iso'
+alias zzz="kill -STOP \$\$"
+alias ps="ps -eo user:20,group:20,pid,command"
+
+# Visual tweaks — only if graphical session is available
+if [[ -n "$DISPLAY" ]] && command -v gsettings >/dev/null 2>&1; then
+  export NO_AT_BRIDGE=1
+  gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' 2>/dev/null
+  export GTK_THEME=Adwaita:dark
+fi
+
+# Developer-specific env
+if [[ "$user" == "Thomas-developer" ]]; then 
+  export REPO_DIR=$(home)
+fi
+
+# export JAVA_HOME=/usr/lib/jvm/default-java
+# export ANDROID_HOME=$HOME/android-sdk
+

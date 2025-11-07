@@ -1,0 +1,33 @@
+
+# no hidden files in the incommon project
+.*
+
+# well accept for the .git stuff
+!.gitignore
+!.gitattributes
+!.gitmodules
+!.gitkeep
+
+# If you use GitHub workflows, uncomment these:
+# !.github/
+# !.github/**
+
+# Emacs, nano, etc.
+*~
+.elc
+.auto-save-list
+.tramp
+.#*
+
+.bak
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+

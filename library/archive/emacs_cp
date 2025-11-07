@@ -1,0 +1,186 @@
+;;--------------------------------------------------------------------------------
+;; set the title at the top of the frame
+;;
+  (defun frame-title (s)
+    "sets the frame title"
+    (interactive "stitle: ")
+    (setq frame-title-format s)
+    )
+
+;;--------------------------------------------------------------------------------
+;; turn off the annoying bell
+;;
+  (setq visible-bell t)
+
+;;--------------------------------------------------------------------------------
+;; tell emacs not to make new files in the working directory
+;;
+  ;; use a backrevs dir rather than leaving ~file droppings everywhere
+  ;;
+    (setq backup-directory-alist `(("." . "~/emacs_backrevs")))
+    (setq backup-by-copying t)
+
+  ;; so that lock files do not end up in the repo
+  ;;
+    (setq create-lockfiles nil)
+
+;;--------------------------------------------------------------------------------
+;; Font
+;;
+  (custom-set-faces
+   '(default ((t (:family "Noto Sans Mono" :foundry "GOOG" :slant normal :weight normal :height 98 :width normal))))
+   '(aw-leading-char-face ((t (:inherit ace-jump-face-foreground :height 2.0)))))
+
+;;--------------------------------------------------------------------------------
+;; elisp utilities
+;;
+  (defun filename-get ()
+    "Gets the name of the file the current buffer is based on."
+    (buffer-file-name (window-buffer (minibuffer-selected-window)))
+    )
+
+  (defun filename-insert ()
+    "Inserts the name of the file the current buffer is based on."
+    (interactive)
+    (insert (filename-get))
+    )
+
+  (global-set-key (kbd "C-c f") 'filename-insert)
+
+  (defun filename ()
+    "Gets the name of the file the current buffer is based on."
+    (interactive)
+    (message (filename-get))
+    )
+
+;;--------------------------------------------------------------------------------
+;; Melpa 
+;;
+  (require 'package)
+  (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+  (add-to-list 'load-path "~/projects/neotree")
+  (package-initialize)
+
+  ;; M-x package-install
+  (if (not (package-installed-p 'neotree)) (package-install 'neotree))
+  (if (not (package-installed-p 'ace-window)) (package-install 'ace-window))
+
+;;--------------------------------------------------------------------------------
+;; emacs shell
+;;
+
+  ;; get the pwd in shell mode from the prompt rather than guessing by
+  ;; watching the commands typed .. yes! now shell variables and source
+  ;; scripts will work
+  ;;   in bashrc: export PS1='\n$(/usr/local/bin/Z)\u@\h§\w§\n> '
+  ;;
+  (add-hook 'shell-mode-hook
+            (lambda ()
+              (shell-dirtrack-mode -1)
+              (dirtrack-mode 1)))
+
+  (add-hook 'dirtrack-directory-change-hook
+            (lambda ()
+              (message default-directory)))
+
+;;  (setq dirtrack-list '("§\\(.*\\)§\n[>#] " 1))
+  (setq dirtrack-list '("§\\([^§]*\\)§" 1))
+
+;;--------------------------------------------------------------------------------
+;; gdb
+;; use gud-gdb instead of gdb and we won't need this.
+;; fix 'feature' of broken gdb where it takes control of an
+;; emacs window, and locks the user out from switching from it
+;;
+  (defun unlock-window ()
+    "Turns off window dedication."
+    (interactive)
+    (set-window-dedicated-p (get-buffer-window (current-buffer)) nil)
+    )
+
+;;--------------------------------------------------------------------------------
+;; shell scripting
+;;
+  (setq sh-basic-offset 2)
+
+;;--------------------------------------------------------------------------------
+;; json
+;;
+  (setq json-encoding-pretty-print t)
+  (setq json-encoding-lisp-style-closings t)
+
+  (defun wrap-comma ()
+    "wrap end of line comma to first of next line"
+    (interactive) 
+    (while (re-search-forward "\\(.*\\), *\n\\( *\\)" nil t) (replace-match "\\1\n\\2,"))
+    )
+
+;;--------------------------------------------------------------------------------
+;; python
+;;
+  (add-hook 'python-mode-hook '(lambda () (setq python-indent 2)))
+
+;;--------------------------------------------------------------------------------
+;; Lisp
+;;
+  (setq lisp-indent-offset 2)
+  (setq inferior-lisp-program "sbcl")      
+
+  (modify-syntax-entry ?\[ "(]" lisp-mode-syntax-table)
+  (modify-syntax-entry ?\] ")[" lisp-mode-syntax-table)
+  (modify-syntax-entry ?{ "(}" lisp-mode-syntax-table)
+  (modify-syntax-entry ?} "){" lisp-mode-syntax-table)
+
+;;--------------------------------------------------------------------------------
+;; Web page development
+;;
+  (setq browse-url-browser-function 'browse-url-chrome)
+  ;(setq browse-url-browser-function 'browse-url-firefox)
+  ;(setq browse-url-browser-function 'browse-url-chromium)
+
+  (setq js-indent-level 2)
+  (setq css-indent-offset 2)    
+  (add-to-list 'auto-mode-alist '("\\.php\\'" . html-mode))
+
+;;--------------------------------------------------------------------------------
+;; C
+;;
+  (add-hook 'c-mode-hook (lambda () (modify-syntax-entry ?· "_")))
+  (add-to-list 'auto-mode-alist '("\\.isq\\'" . c-mode))
+  ; in customer variables '(c-offsets-alist (quote ((label . 2))))
+
+;;--------------------------------------------------------------------------------
+;; neotree
+;;
+  (require 'neotree)
+  (global-set-key [f8] 'neotree-toggle)
+  (setq neo-window-fixed-size nil)
+  (setq neo-smart-open t)
+  (setq neo-window-width 45)
+
+;;--------------------------------------------------------------------------------
+;; Ace Window Manager
+;;
+  (require 'ace-window)
+  (global-set-key (kbd "M-p") 'ace-window)
+
+;;--------------------------------------------------------------------------------
+;; emacs behavior
+;;
+  (setq inhibit-startup-screen t)
+  (setq-default indent-tabs-mode nil)
+  (global-set-key (kbd "C-z") nil)
+  (set-default 'truncate-lines t)
+  (setq truncate-partial-width-windows nil)
+  (setq-default fill-column 80)
+  (setq fill-column 80)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (put 'narrow-to-region 'disabled nil)
+  (put 'downcase-region 'disabled nil)
+  (put 'set-goal-column 'disabled nil)
+  (put 'erase-buffer 'disabled nil)
+  (put 'upcase-region 'disabled nil)
+  (setq byte-compile-warnings '(cl-functions))
+
+

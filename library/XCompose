@@ -1,0 +1,243 @@
+# Author: Thomas Walker Lynch
+# 2023-10-24
+# MIT license
+
+# I purposely left out prior definitions so as to support namespaces as noted below.
+# include "/usr/share/X11/locale/en_US.UTF-8/Compose"
+
+# The goal here is not to include all of unicode.  That would be silly, as
+# typing compose characters is cumbersome.  If a person wants to use a
+# different script, that person should change the keyboard layout setting.
+# This file is for supporting math and science writing in English, and
+# for supporting accents.
+
+
+#--------------------------------------------------------------------------------
+# all the special characters have as their origins tricks played on
+# manual typewriters.  Thus this .Xcompose file defines each sepcial
+# character by the character we start with, followed by a description
+# of what we do with it.  As examples, double striking letters, turning
+# them upside down, typing a slash through it, etc.
+#
+# <namespace> <keyboard character> <typesetting trick> ... <space>: <definition>  <Unumber> # comment
+#
+# Be starting with a namespace character we reduce the problem of potential
+# aliasing to that namespace.  By ending each sequence with a <space>, by
+# hitting the space bar, we may make a prefix sequence to a longer sequence
+# unique. In this manner we may add more than one typesetting trick to a
+# single character.
+# 
+
+#--------------------------------------------------------------------------------
+# name spaces
+# L - Latin
+# G - Greek
+# m - math
+# 
+
+#--------------------------------------------------------------------------------
+# typesetting instructions
+#
+# ' : add accent
+# ` : add accent agui
+# : : place double dot over
+#
+# d : doublstrike
+#
+# u : upside down
+# r : rotate right
+# l : rotate left
+# b : backwards
+# o : occlusion (originally typed by placing another piece of paper to chop part off)
+#
+# / : strike through
+# - : overstrike with a - (underscore is used for subscript)
+# s : put a square around it
+# c : put a circle around it
+#
+# ^ : superscript
+# _ : subscript
+
+#--------------------------------------------------------------------------------
+# Latin
+
+# Double struck
+<Multi_key> <L> <A> <d> <space>: "𝔸"   U1D538    # double-struck capital A
+<Multi_key> <L> <B> <d> <space>: "𝔹"   U1D539    # double-struck capital B
+<Multi_key> <L> <C> <d> <space>: "ℂ"   U2102     # double-struck capital C
+<Multi_key> <L> <D> <d> <space>: "𝔻"   U1D53B    # double-struck capital D
+<Multi_key> <L> <E> <d> <space>: "𝔼"   U1D53C    # double-struck capital E
+<Multi_key> <L> <F> <d> <space>: "𝔽"   U1D53D    # double-struck capital F
+<Multi_key> <L> <G> <d> <space>: "𝔾"   U1D53E    # double-struck capital G
+<Multi_key> <L> <H> <d> <space>: "ℍ"   U210D     # double-struck capital H
+<Multi_key> <L> <I> <d> <space>: "𝕀"   U1D540    # double-struck capital I
+<Multi_key> <L> <J> <d> <space>: "𝕁"   U1D541    # double-struck capital J
+<Multi_key> <L> <K> <d> <space>: "𝕂"   U1D542    # double-struck capital K
+<Multi_key> <L> <L> <d> <space>: "𝕃"   U1D543    # double-struck capital L
+<Multi_key> <L> <M> <d> <space>: "𝕄"   U1D544    # double-struck capital M
+<Multi_key> <L> <N> <d> <space>: "ℕ"   U2115     # double-struck capital N
+<Multi_key> <L> <O> <d> <space>: "𝕆"   U1D546    # double-struck capital O
+<Multi_key> <L> <P> <d> <space>: "ℙ"   U2119     # double-struck capital P
+<Multi_key> <L> <Q> <d> <space>: "ℚ"   U211A     # double-struck capital Q
+<Multi_key> <L> <R> <d> <space>: "ℝ"   U211D     # double-struck capital R
+<Multi_key> <L> <S> <d> <space>: "𝕊"   U1D54A    # double-struck capital S
+<Multi_key> <L> <T> <d> <space>: "𝕋"   U1D54B    # double-struck capital T
+<Multi_key> <L> <U> <d> <space>: "𝕌"   U1D54C    # double-struck capital U
+<Multi_key> <L> <V> <d> <space>: "𝕍"   U1D54D    # double-struck capital V
+<Multi_key> <L> <W> <d> <space>: "𝕎"   U1D54E    # double-struck capital W
+<Multi_key> <L> <X> <d> <space>: "𝕏"   U1D54F    # double-struck capital X
+<Multi_key> <L> <Y> <d> <space>: "𝕐"   U1D550    # double-struck capital Y
+<Multi_key> <L> <Z> <d> <space>: "ℤ"   U2124     # double-struck capital Z
+	       
+<Multi_key> <L> <a> <d> <space>: "𝕒"   U1D552    # double-struck lowercase a
+<Multi_key> <L> <b> <d> <space>: "𝕓"   U1D553    # double-struck lowercase b
+<Multi_key> <L> <c> <d> <space>: "𝕔"   U1D554    # double-struck lowercase c
+<Multi_key> <L> <d> <d> <space>: "𝕕"   U1D555    # double-struck lowercase d
+<Multi_key> <L> <e> <d> <space>: "𝕖"   U1D556    # double-struck lowercase e
+<Multi_key> <L> <f> <d> <space>: "𝕗"   U1D557    # double-struck lowercase f
+<Multi_key> <L> <g> <d> <space>: "𝕘"   U1D558    # double-struck lowercase g
+<Multi_key> <L> <h> <d> <space>: "𝕙"   U1D559    # double-struck lowercase h
+<Multi_key> <L> <i> <d> <space>: "𝕚"   U1D55A    # double-struck lowercase i
+<Multi_key> <L> <j> <d> <space>: "𝕛"   U1D55B    # double-struck lowercase j
+<Multi_key> <L> <k> <d> <space>: "𝕜"   U1D55C    # double-struck lowercase k
+<Multi_key> <L> <l> <d> <space>: "𝕝"   U1D55D    # double-struck lowercase l
+<Multi_key> <L> <m> <d> <space>: "𝕞"   U1D55E    # double-struck lowercase m
+<Multi_key> <L> <n> <d> <space>: "𝕟"   U1D55F    # double-struck lowercase n
+<Multi_key> <L> <o> <d> <space>: "𝕠"   U1D560    # double-struck lowercase o
+<Multi_key> <L> <p> <d> <space>: "𝕡"   U1D561    # double-struck lowercase p
+<Multi_key> <L> <q> <d> <space>: "𝕢"   U1D562    # double-struck lowercase q
+<Multi_key> <L> <r> <d> <space>: "𝕣"   U1D563    # double-struck lowercase r
+<Multi_key> <L> <s> <d> <space>: "𝕤"   U1D564    # double-struck lowercase s
+<Multi_key> <L> <t> <d> <space>: "𝕥"   U1D565    # double-struck lowercase t
+<Multi_key> <L> <u> <d> <space>: "𝕦"   U1D566    # double-struck lowercase u
+<Multi_key> <L> <v> <d> <space>: "𝕧"   U1D567    # double-struck lowercase v
+<Multi_key> <L> <w> <d> <space>: "𝕨"   U1D568    # double-struck lowercase w
+<Multi_key> <L> <x> <d> <space>: "𝕩"   U1D569    # double-struck lowercase x
+<Multi_key> <L> <y> <d> <space>: "𝕪"   U1D56A    # double-struck lowercase y
+<Multi_key> <L> <z> <d> <space>: "𝕫"   U1D56B    # double-struck lowercase z
+
+# accented letters
+<Multi_key> <L> <a> <apostrophe> <space>: "á"   U00E1    # lowercase a with acute accent
+<Multi_key> <L> <a> <grave> <space>: "à"   U00E0    # lowercase a with grave accent
+<Multi_key> <L> <a> <colon> <space>: "ä"   U00E4    # lowercase a with umlaut
+<Multi_key> <L> <a> <asciicircum> <space>: "â"   U00E2    # lowercase a with circumflex
+<Multi_key> <L> <a> <asciitilde> <space>: "ã"   U00E3    # lowercase a with tilde
+<Multi_key> <L> <a> <e> <space>: "æ"   U00E6    # lowercase ae diphthong
+<Multi_key> <L> <c> <comma> <space>: "ç"   U00E7    # lowercase c with cedilla
+<Multi_key> <L> <e> <apostrophe> <space>: "é"   U00E9    # lowercase e with acute accent
+<Multi_key> <L> <e> <grave> <space>: "è"   U00E8    # lowercase e with grave accent
+<Multi_key> <L> <e> <colon> <space>: "ë"   U00EB    # lowercase e with umlaut
+<Multi_key> <L> <e> <asciicircum> <space>: "ê"   U00EA    # lowercase e with circumflex
+<Multi_key> <L> <i> <apostrophe> <space>: "í"   U00ED    # lowercase i with acute accent
+<Multi_key> <L> <i> <grave> <space>: "ì"   U00EC    # lowercase i with grave accent
+<Multi_key> <L> <i> <colon> <space>: "ï"   U00EF    # lowercase i with umlaut
+<Multi_key> <L> <i> <asciicircum> <space>: "î"   U00EE    # lowercase i with circumflex
+<Multi_key> <L> <n> <asciitilde> <space>: "ñ"   U00F1    # lowercase n with tilde
+<Multi_key> <L> <o> <apostrophe> <space>: "ó"   U00F3    # lowercase o with acute accent
+<Multi_key> <L> <o> <grave> <space>: "ò"   U00F2    # lowercase o with grave accent
+<Multi_key> <L> <o> <colon> <space>: "ö"   U00F6    # lowercase o with umlaut
+<Multi_key> <L> <o> <asciicircum> <space>: "ô"   U00F4    # lowercase o with circumflex
+<Multi_key> <L> <o> <asciitilde> <space>: "õ"   U00F5    # lowercase o with tilde
+<Multi_key> <L> <o> <e> <space>: "œ"   U0153    # lowercase oe diphthong
+
+
+# #--------------------------------------------------------------------------------
+# Greek
+
+<Multi_key> <G> <A>            <space>: "Α"   U0391    # greek capital letter alpha    
+<Multi_key> <G> <B>            <space>: "Β"   U0392    # greek capital letter beta     
+<Multi_key> <G> <G>            <space>: "Γ"   U0393    # greek capital letter gamma    
+<Multi_key> <G> <D>            <space>: "Δ"   U0394    # greek capital letter delta    
+<Multi_key> <G> <E>            <space>: "Ε"   U0395    # greek capital letter epsilon  
+<Multi_key> <G> <Z>            <space>: "Ζ"   U0396    # greek capital letter zeta     
+<Multi_key> <G> <H>            <space>: "Η"   U0397    # greek capital letter eta      
+<Multi_key> <G> <J>            <space>: "Θ"   U0398    # greek capital letter theta    
+<Multi_key> <G> <I>            <space>: "Ι"   U0399    # greek capital letter iota     
+<Multi_key> <G> <K>            <space>: "Κ"   U039A    # greek capital letter kappa    
+<Multi_key> <G> <L>            <space>: "Λ"   U039B    # greek capital letter lamda    
+<Multi_key> <G> <M>            <space>: "Μ"   U039C    # greek capital letter mu       
+<Multi_key> <G> <N>            <space>: "Ν"   U039D    # greek capital letter nu       
+<Multi_key> <G> <X>            <space>: "Ξ"   U039E    # greek capital letter xi       
+<Multi_key> <G> <O>            <space>: "Ο"   U039F    # greek capital letter omicron  
+<Multi_key> <G> <P>            <space>: "Π"   U03A0    # greek capital letter pi       
+<Multi_key> <G> <R>            <space>: "Ρ"   U03A1    # greek capital letter rho      
+<Multi_key> <G> <S>            <space>: "Σ"   U03A3    # greek capital letter sigma    
+<Multi_key> <G> <T>            <space>: "Τ"   U03A4    # greek capital letter tau      
+<Multi_key> <G> <U>            <space>: "Υ"   U03A5    # greek capital letter upsilon  
+<Multi_key> <G> <F>            <space>: "Φ"   U03A6    # greek capital letter phi      
+<Multi_key> <G> <Q>            <space>: "Χ"   U03A7    # greek capital letter chi      
+<Multi_key> <G> <Y>            <space>: "Ψ"   U03A8    # greek capital letter psi      
+<Multi_key> <G> <W>            <space>: "Ω"   U03A9    # greek capital letter omega
+
+<multi_key> <G> <a>            <space>: "α"   u03b1    # greek small letter alpha
+<multi_key> <G> <b>            <space>: "β"   u03b2    # greek small letter beta
+<multi_key> <G> <g>            <space>: "γ"   u03b3    # greek small letter gamma
+<multi_key> <G> <d>            <space>: "δ"   u03b4    # greek small letter delta
+<multi_key> <G> <e>            <space>: "ε"   u03b5    # greek small letter epsilon
+<multi_key> <G> <z>            <space>: "ζ"   u03b6    # greek small letter zeta
+<multi_key> <G> <h>            <space>: "η"   u03b7    # greek small letter eta
+<multi_key> <G> <j>            <space>: "θ"   u03b8    # greek small letter theta
+<multi_key> <G> <i>            <space>: "ι"   u03b9    # greek small letter iota
+<multi_key> <G> <k>            <space>: "κ"   u03ba    # greek small letter kappa
+<multi_key> <G> <l>            <space>: "λ"   u03bb    # greek small letter lamda
+<multi_key> <G> <m>            <space>: "μ"   u03bc    # greek small letter mu
+<multi_key> <G> <n>            <space>: "ν"   u03bd    # greek small letter nu
+<multi_key> <G> <x>            <space>: "ξ"   u03be    # greek small letter xi
+<multi_key> <G> <o>            <space>: "ο"   u03bf    # greek small letter omicron
+<multi_key> <G> <p>            <space>: "π"   u03c0    # greek small letter pi
+<multi_key> <G> <r>            <space>: "ρ"   u03c1    # greek small letter rho
+<multi_key> <G> <s>            <space>: "σ"   u03c3    # greek small letter sigma
+<multi_key> <G> <t>            <space>: "τ"   u03c4    # greek small letter tau
+<multi_key> <G> <u>            <space>: "υ"   u03c5    # greek small letter upsilon
+<multi_key> <G> <f>            <space>: "φ"   u03c6    # greek small letter phi
+<multi_key> <G> <q>            <space>: "χ"   u03c7    # greek small letter chi
+<multi_key> <G> <y>            <space>: "ψ"   u03c8    # greek small letter psi
+<multi_key> <G> <w>            <space>: "ω"   u03c9    # greek small letter omega
+
+# --------------------------------------------------------------------------------
+# math
+
+<Multi_key> <m> <x>                   <space>: "×"   U00D7    # multiplication sign              
+<Multi_key> <m> <period>              <space>: "·"   U00B7    # middle dot                       
+<Multi_key> <m> <period> <s>          <space>: "⊡"   U22A1    # squared dot operator             
+                                                                                                 
+<Multi_key> <m> <equal> <slash>       <space>: "≠"   U2260    # not equal to                     
+
+<Multi_key> <m> <less> <hyphen>       <space>: "≤"   U2264    # less-than or equal to            
+<Multi_key> <m> <greater> <hyphen>    <space>: "≥"   U2265    # greater-than or equal to         
+<Multi_key> <m> <0> <slash>           <space>: "∅"  U2205    # empty set                        
+
+                                                                                                 
+<Multi_key> <m> <e> <o>               <space>: "∈"   U2208    # element of                       
+<Multi_key> <m> <e> <o> <slash>       <space>: "∉"    U2209    # not an element of                
+                                                                                                 
+<Multi_key> <m> <U>                   <space>: "∪"   U222A    # union                            
+<Multi_key> <m> <U> <u>               <space>: "⋂"   U22C2   # n-ary interesection               
+<Multi_key> <m> <U> <r>               <space>: "⊂"   U2282    # subset of                        
+<Multi_key> <m> <U> <r> <hyphen>      <space>: "⊆"   U2286    # subset of or equal to            
+<Multi_key> <m> <U> <l>               <space>: "⊃"   U2283    # superset of                      
+<Multi_key> <m> <U> <l> <hyphen>      <space>: "⊇"   U2287    # superset of or equal to          
+                                                                                                 
+<Multi_key> <m> <u>                   <space>: "∩"   U2229    # intersection                     
+<Multi_key> <m> <C>                   <space>: "∁"   U2201    # complement                       
+                                                                                                 
+<Multi_key> <m> <E> <b>               <space>: "∃"   U2203    # there exists                     
+<Multi_key> <m> <E> <b> <slash>       <space>: "∄"   U2204    # there does not exist             
+<Multi_key> <m> <A> <u>               <space>: "∀"   U2200    # for all                          
+                                                                                                 
+<Multi_key> <m> <hyphen>              <space>: "¬"   U00AC    # not sign                         
+                                                                                                 
+<Multi_key> <m> <V>                   <space>: "⋁"  U2228    # big vee, n-ary logical or        
+<Multi_key> <m> <V> <u>               <space>: "⋀"  U22C0    # big wedge n-ary LOGICAL AND      
+                                                                                                 
+<Multi_key> <m> <v>                   <space>: "∨"  U2228    # little vee logical or            
+<Multi_key> <m> <v> <u>               <space>: "∧"  U2227    # little weddge logical and        
+<Multi_key> <m> <v> <u> <hyphen>      <space>: "⊼"  U22BC   # NAND                             
+<Multi_key> <m> <hyphen> <greater>    <space>: "➜"  U27A0   # implies                          
+<Multi_key> <m> <=> <greater>         <space>: "⇒" U21D2   # implies                          
+<Multi_key> <m> <less> <=> <greater>  <space>: "⇔" U21D4   # if and only if
+
+<Multi_key> <m> <O> <greater>         <space>: "⟳" U27F3    # clockwise gapped circle arrow, 'do' or 'for' operator
+<Multi_key> <m> <s> <r>               <space>: "◨" U25E8    # square with right inked 'rightmost' 'maximum' operator
+<Multi_key> <m> <s> <l>               <space>: "◧" U25E7    # square with left inked  'leftmost' 'minimum' operator
+<Multi_key> <m> <t> <o>               <space>: "☥"  U2625    # ankh

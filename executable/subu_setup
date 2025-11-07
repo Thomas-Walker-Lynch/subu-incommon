@@ -1,0 +1,72 @@
+
+# alsactl init seemed to be required, though sound is already working
+# for Thomas.
+root@Stanley:/home/Thomas-masu# alsactl init
+
+Found hardware: "HDA-Intel" "ATI R6xx HDMI" "HDA:1002aa01,00aa0100,00100700" "0x1002" "0x1637"
+Hardware is initialized using a generic method
+Found hardware: "HDA-Intel" "Realtek ALC294" "HDA:10ec0294,104311af,00100004" "0x1043" "0x11af"
+Hardware is initialized using a generic method
+Found hardware: "USB-Audio" "USB Mixer" "USB046d:0a8f" "" ""
+Hardware is initialized using a generic method
+
+dnf reinstall pipewire-alsa
+
+
+
+
+#!/bin/bash
+set -e
+
+# Check for subuser name
+if [ -z "$1" ]; then
+  echo "Usage: $0 <subu_name>"
+  exit 1
+fi
+
+SUBU_NAME=$1
+SUBU_USER="Thomas-$SUBU_NAME"
+SUBU_HOME="/home/$SUBU_USER"
+
+# Check if the subuser exists
+if ! id "$SUBU_USER" &>/dev/null; then
+  echo "Error: Subuser $SUBU_USER does not exist!"
+  exit 1
+fi
+
+echo "Setting up subuser: $SUBU_USER"
+
+# 1. Enable linger for the subuser
+echo "Enabling linger for $SUBU_USER..."
+sudo loginctl enable-linger "$SUBU_USER"
+
+# 2. Enable pipewire services for the subuser
+echo "Enabling pipewire services for $SUBU_USER..."
+sudo -u "$SUBU_USER" systemctl --user enable pipewire
+sudo -u "$SUBU_USER" systemctl --user enable pipewire-pulse
+
+# 3. Set up X11 access (XAUTHORITY)
+echo "Setting up X11 access for $SUBU_USER..."
+XAUTH_PATH="$SUBU_HOME/.Xauthority"
+if [ ! -f "$XAUTH_PATH" ]; then
+  sudo -u "$SUBU_USER" touch "$XAUTH_PATH"
+fi
+
+# Generate a trusted X11 cookie
+echo "Generating trusted X11 cookie..."
+xauth generate "$DISPLAY" . trusted
+xauth extract - "$DISPLAY" | sudo -u "$SUBU_USER" xauth merge -
+
+# 4. Set up a basic .bashrc if not already present
+echo "Setting up .bashrc for $SUBU_USER..."
+BASHRC_PATH="$SUBU_HOME/.bashrc"
+if [ ! -f "$BASHRC_PATH" ]; then
+  sudo -u "$SUBU_USER" cp /etc/skel/.bashrc "$BASHRC_PATH"
+  echo "# Custom settings for $SUBU_USER" | sudo -u "$SUBU_USER" tee -a "$BASHRC_PATH"
+fi
+
+# 5. Adjust permissions for the subuser home directory (optional)
+echo "Ensuring correct permissions for $SUBU_HOME..."
+sudo chown -R "$SUBU_USER:$SUBU_USER" "$SUBU_HOME"
+
+echo "Subuser setup complete for $SUBU_USER!"
