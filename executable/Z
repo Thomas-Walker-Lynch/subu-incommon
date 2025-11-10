@@ -7,20 +7,21 @@ USAGE = """
 Z – UTC timestamp helper
 
 Usage:
-  Z                     Show this help.
+  Z                     Print default UTC timestamp (YYYY-MM-DD HH:MM:SS Z).
   Z help                Show this help.
   Z Unix                Print Unix time (seconds since epoch).
+  Z Unix-<seconds>      Print formatted UTC time for that Unix timestamp.
 
   Z [OPTIONS]           Print a formatted UTC timestamp, where OPTIONS are:
     T                   Use 'T' between date and time (ISO 8601 style).
     T-<sep>             Use <sep> between date and time.
                         T- with empty <sep> uses a single space (default).
 
-    leftmost[-FIELD]    Leftmost field to include (start at FIELD).
+    leftmost[-FIELD]    Leftmost field to include.
                         FIELD: year, month, day, hour, minute, second, scintilla
                         Default FIELD: year.
 
-    rightmost[-FIELD]   Rightmost field to include (end at FIELD).
+    rightmost[-FIELD]   Rightmost field to include.
                         Same FIELD set as leftmost.
                         Default FIELD: second.
 
