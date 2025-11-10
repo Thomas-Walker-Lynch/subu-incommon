@@ -1,3 +1,211 @@
-#!/bin/sh
+#!/usr/bin/env -S python3 -B
+# -*- mode: python; coding: utf-8; python-indent-offset: 2; indent-tabs-mode: nil -*-
 
-/usr/bin/date -u +"%Y-%m-%d %H:%M:%SZ"
+import sys, time, datetime
+
+USAGE = """
+Z – UTC timestamp helper
+
+Usage:
+  Z                     Show this help.
+  Z help                Show this help.
+  Z unix                Print Unix time (seconds since epoch).
+
+  Z [OPTIONS]           Print a formatted UTC timestamp, where OPTIONS are:
+    T                   Use 'T' between date and time (ISO 8601 style).
+    T-<sep>             Use <sep> between date and time.
+                        T- with empty <sep> uses a single space (default).
+
+    leftmost[-FIELD]    Leftmost field to include (start at FIELD).
+                        FIELD: year, month, day, hour, minute, second, scintilla
+                        Default FIELD: year.
+
+    rightmost[-FIELD]   Rightmost field to include (end at FIELD).
+                        Same FIELD set as leftmost.
+                        Default FIELD: second.
+
+    suffix              Use 'Z' as the suffix (default).
+    suffix-             Use 'UTC' as the suffix.
+    suffix-<s>          Use <s> as the suffix.
+    suffix-''           No suffix at all (literal two single-quotes).
+
+Examples:
+  Z T-_ 
+  Z T leftmost-year rightmost-second
+  Z T- leftmost-day rightmost-minute suffix
+  Z leftmost-hour rightmost-second suffix-UTC
+"""
+
+FIELDS = ["year", "month", "day", "hour", "minute", "second", "scintilla"]
+FIELD_INDEX = {name: i for i, name in enumerate(FIELDS)}
+
+DEFAULT_LEFTMOST = "year"
+DEFAULT_RIGHTMOST = "second"
+DEFAULT_SEP = " "
+DEFAULT_SUFFIX = " Z"
+
+def print_usage():
+  print(USAGE.strip())
+
+
+def parse_field(label, value, default):
+  if not value:
+    return default
+  if value not in FIELD_INDEX:
+    print(f"Z: invalid {label} '{value}' (expected one of: {', '.join(FIELDS)})", file=sys.stderr)
+    raise SystemExit(1)
+  return value
+
+
+def build_timestamp(dt, leftmost, rightmost, sep, suffix):
+  li = FIELD_INDEX[leftmost]
+  ri = FIELD_INDEX[rightmost]
+  if li > ri:
+    print(f"Z: leftmost '{leftmost}' is finer than rightmost '{rightmost}'", file=sys.stderr)
+    raise SystemExit(1)
+
+  def in_range(name):
+    idx = FIELD_INDEX[name]
+    return li <= idx <= ri
+
+  # date part
+  date_parts = []
+  if in_range("year"):
+    date_parts.append(f"{dt.year:04d}")
+  if in_range("month"):
+    date_parts.append(f"{dt.month:02d}")
+  if in_range("day"):
+    date_parts.append(f"{dt.day:02d}")
+  date_str = "-".join(date_parts) if date_parts else ""
+
+  # time part
+  time_parts = []
+  want_hour = in_range("hour")
+  want_minute = in_range("minute")
+  want_second = in_range("second")
+  want_scint = in_range("scintilla")
+
+  if want_hour or want_minute or want_second or want_scint:
+    if want_hour:
+      time_parts.append(f"{dt.hour:02d}")
+    if want_minute:
+      time_parts.append(f"{dt.minute:02d}")
+    elif want_hour and (want_second or want_scint):
+      time_parts.append(f"{dt.minute:02d}")
+    if want_second or want_scint:
+      time_parts.append(f"{dt.second:02d}")
+
+  time_str = ":".join(time_parts) if time_parts else ""
+
+  if want_scint:
+    frac = f"{dt.microsecond:06d}"
+    if time_str:
+      time_str = f"{time_str}.{frac}"
+    else:
+      time_str = f"{dt.second:02d}.{frac}"
+
+  # combine date + time
+  if date_str and time_str:
+    out = f"{date_str}{sep}{time_str}"
+  else:
+    out = date_str or time_str or ""
+
+  # suffix is literal; if you want a separator, put it in the suffix
+  if suffix:
+    out = f"{out}{suffix}" if out else suffix
+
+  return out
+
+def format_utc(
+  *,
+  dt=None,
+  leftmost="year",
+  rightmost="second",
+  sep=" ",
+  suffix="Z",
+):
+  if dt is None:
+    dt = datetime.datetime.now(datetime.timezone.utc)
+  elif dt.tzinfo is None:
+    dt = dt.replace(tzinfo=datetime.timezone.utc)
+  else:
+    dt = dt.astimezone(datetime.timezone.utc)
+  return build_timestamp(dt, leftmost, rightmost, sep, suffix)
+
+def CLI(argv=None):
+  """
+  Command-line interface for Z.
+
+  argv – list of arguments (excluding program name). If None, uses sys.argv[1:].
+  Returns integer exit code.
+  """
+  if argv is None:
+    argv = sys.argv[1:]
+
+  # No-arg default: most readable compact form
+  if not argv:
+    out = format_utc(
+      leftmost=DEFAULT_LEFTMOST,
+      rightmost=DEFAULT_RIGHTMOST,
+      sep=DEFAULT_SEP,
+      suffix=DEFAULT_SUFFIX,
+    )
+    print(out)
+    return 0
+
+  if argv[0] in ("help", "-h", "--help"):
+    print_usage()
+    return 0
+
+  # Start from the same defaults that no-arg uses
+  leftmost = DEFAULT_LEFTMOST
+  rightmost = DEFAULT_RIGHTMOST
+  sep = DEFAULT_SEP
+  suffix = DEFAULT_SUFFIX
+
+  args = list(argv)
+
+  # Now parse options
+  for arg in args:
+    if arg == "T":
+      sep = "T"
+    elif arg.startswith("T-"):
+      tail = arg[2:]
+      sep = " " if tail == "" else tail
+
+    elif arg == "leftmost":
+      leftmost = "year"
+    elif arg.startswith("leftmost-"):
+      leftmost = parse_field("leftmost", arg.split("-", 1)[1], "year")
+
+    elif arg == "rightmost":
+      rightmost = "second"
+    elif arg.startswith("rightmost-"):
+      rightmost = parse_field("rightmost", arg.split("-", 1)[1], "second")
+
+    elif arg == "suffix":
+      suffix = "Z"
+    elif arg.startswith("suffix-"):
+      tail = arg.split("-", 1)[1]
+      if tail == "":
+        suffix = "UTC"
+      elif tail == "''":
+        suffix = ""
+      else:
+        suffix = tail
+
+    else:
+      print(f"Z: unknown option '{arg}'", file=sys.stderr)
+      return 1
+
+  out = format_utc(
+    leftmost=leftmost,
+    rightmost=rightmost,
+    sep=sep,
+    suffix=suffix,
+  )
+  print(out)
+  return 0
+
+if __name__ == "__main__":
+  raise SystemExit(CLI())
