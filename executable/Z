@@ -9,7 +9,7 @@ Z – UTC timestamp helper
 Usage:
   Z                     Show this help.
   Z help                Show this help.
-  Z unix                Print Unix time (seconds since epoch).
+  Z Unix                Print Unix time (seconds since epoch).
 
   Z [OPTIONS]           Print a formatted UTC timestamp, where OPTIONS are:
     T                   Use 'T' between date and time (ISO 8601 style).
@@ -142,7 +142,7 @@ def CLI(argv=None):
   if argv is None:
     argv = sys.argv[1:]
 
-  # No-arg default: most readable compact form
+  # No-arg default: most readable form
   if not argv:
     out = format_utc(
       leftmost=DEFAULT_LEFTMOST,
@@ -153,17 +153,34 @@ def CLI(argv=None):
     print(out)
     return 0
 
+  # Help
   if argv[0] in ("help", "-h", "--help"):
     print_usage()
     return 0
+
+  # Z Unix  -> current Unix time (integer)
+  if argv[0] == "Unix" and len(argv) == 1:
+    print(int(time.time()))
+    return 0
+
+  # Optional override: Unix-<seconds> (format that timestamp)
+  dt_override = None
+  args = list(argv)
+  if args[0].startswith("Unix-"):
+    _, val = args[0].split("-", 1)
+    try:
+      sec = float(val)
+    except ValueError:
+      print(f"Z: invalid Unix seconds '{val}'", file=sys.stderr)
+      return 1
+    dt_override = datetime.datetime.fromtimestamp(sec, datetime.timezone.utc)
+    args = args[1:]
 
   # Start from the same defaults that no-arg uses
   leftmost = DEFAULT_LEFTMOST
   rightmost = DEFAULT_RIGHTMOST
   sep = DEFAULT_SEP
   suffix = DEFAULT_SUFFIX
-
-  args = list(argv)
 
   # Now parse options
   for arg in args:
@@ -199,6 +216,7 @@ def CLI(argv=None):
       return 1
 
   out = format_utc(
+    dt=dt_override,
     leftmost=leftmost,
     rightmost=rightmost,
     sep=sep,
