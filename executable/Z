@@ -1,264 +1,144 @@
-#!/usr/bin/env -S python3 -B
+#!/usr/bin/env python3
 # -*- mode: python; coding: utf-8; python-indent-offset: 2; indent-tabs-mode: nil -*-
+
+"""
+Z – UTC timestamp helper (RT Code Format)
+
+Version: 3.4
+CLI parses args → calls work function → formats time.
+Safe for filenames.
+"""
 
 import sys
 import time
 import datetime
 import re
+from typing import Dict, Optional
 
-USAGE = """
-Z – UTC timestamp helper
+# ----------------------------------------------------------------------
+# RT: 2-space indent, dense, no trailing spaces
+# ----------------------------------------------------------------------
+FIELDS = ["year","month","day","hour","minute","second","scintilla"]
+FIELD_INDEX = {name:i for i,name in enumerate(FIELDS)}
+
+DEFAULT_FORMAT = "%year-%month-%day_%hour%minute%secondZ"
+ISO8601_FORMAT = "%year-%month-%dayT%hour:%minute:%second.%scintillaZ"
+
+VERSION = "3.4"
+
+USAGE = f"""
+Z – UTC timestamp helper (version {VERSION})
 
 Usage:
-  Z                     Print default UTC timestamp (YYYY-MM-DD HH:MM:SS Z).
-  Z help                Show this help.
-  Z Unix                Print Unix time (seconds since epoch).
-  Z Unix-<seconds>      Print formatted UTC time for that Unix timestamp.
+  Z                               Print default format
+  Z version                       Print version
+  Z iso | iso8601                 ISO 8601 with microseconds
+  Z format-"<fmt>"                Custom format string (one token)
+  Z Unix                          Unix seconds (now)
+  Z Unix-<sec>                    Use this time instead of system time.
+  Z help                          Show help
 
-  Z [OPTIONS]           Print a formatted UTC timestamp, where OPTIONS are:
-    T                   Use 'T' between date and time (ISO 8601 style).
-    T-<sep>             Use <sep> between date and time.
-                        T- with empty <sep> uses a single space (default).
-
-    leftmost[-FIELD]    Leftmost field to include.
-                        FIELD: year, month, day, hour, minute, second, scintilla
-                        Default FIELD: year.
-
-    rightmost[-FIELD]   Rightmost field to include.
-                        Same FIELD set as leftmost.
-                        Default FIELD: second.
-
-    suffix              Use 'Z' as the suffix (default).
-    suffix-             Use 'UTC' as the suffix.
-    suffix-<s>          Use <s> as the suffix.
-    suffix-''           No suffix at all (literal two single-quotes).
-
-    sed s/old/new[/g]   Apply sed-style substitution to the final output.
-                        Can be used multiple times.
+Fields:
+  %year %month %day %hour %minute %second %scintilla
 
 Examples:
-  Z T suffix-Z sed s/:/_/g
-  Z T- leftmost-day rightmost-minute suffix sed s/:/./g
-  Z sed s/:/-/g sed s/ /_/g suffix-''
-"""
+  Z iso
+  Z format-"%year%month%day-%hour%minute%secondZ"
+  Z Unix-1731380000 iso
+  Z iso Unix-1731380000
+  Z Unix-1731380000 format-"%hour"
+""".strip()
 
-FIELDS = ["year", "month", "day", "hour", "minute", "second", "scintilla"]
-FIELD_INDEX = {name: i for i, name in enumerate(FIELDS)}
-
-DEFAULT_LEFTMOST = "year"
-DEFAULT_RIGHTMOST = "second"
-DEFAULT_SEP = " "
-DEFAULT_SUFFIX = " Z"
-
-# Regex to validate safe sed: only s/pattern/repl/[g]
-SED_RE = re.compile(r"^s/([^/]*)/([^/]*)(/(g?))?$")
-
-def print_usage():
-  print(USAGE.strip())
-
-def parse_field(label, value, default):
-  if not value:
-    return default
-  if value not in FIELD_INDEX:
-    print(f"Z: invalid {label} '{value}' (expected one of: {', '.join(FIELDS)})", file=sys.stderr)
-    raise SystemExit(1)
-  return value
-
-def build_timestamp(dt, leftmost, rightmost, sep, suffix):
-  li = FIELD_INDEX[leftmost]
-  ri = FIELD_INDEX[rightmost]
-  if li > ri:
-    print(f"Z: leftmost '{leftmost}' is finer than rightmost '{rightmost}'", file=sys.stderr)
-    raise SystemExit(1)
-
-  def in_range(name):
-    idx = FIELD_INDEX[name]
-    return li <= idx <= ri
-
-  # date part
-  date_parts = []
-  if in_range("year"):
-    date_parts.append(f"{dt.year:04d}")
-  if in_range("month"):
-    date_parts.append(f"{dt.month:02d}")
-  if in_range("day"):
-    date_parts.append(f"{dt.day:02d}")
-  date_str = "-".join(date_parts) if date_parts else ""
-
-  # time part
-  time_parts = []
-  want_hour = in_range("hour")
-  want_minute = in_range("minute")
-  want_second = in_range("second")
-  want_scint = in_range("scintilla")
-
-  if want_hour or want_minute or want_second or want_scint:
-    if want_hour:
-      time_parts.append(f"{dt.hour:02d}")
-    if want_minute:
-      time_parts.append(f"{dt.minute:02d}")
-    elif want_hour and (want_second or want_scint):
-      time_parts.append(f"{dt.minute:02d}")
-    if want_second or want_scint:
-      time_parts.append(f"{dt.second:02d}")
-
-  time_str = ":".join(time_parts) if time_parts else ""
-
-  if want_scint:
-    frac = f"{dt.microsecond:06d}"
-    if time_str:
-      time_str = f"{time_str}.{frac}"
-    else:
-      time_str = f"{dt.second:02d}.{frac}"
-
-  # combine date + time
-  if date_str and time_str:
-    out = f"{date_str}{sep}{time_str}"
-  else:
-    out = date_str or time_str or ""
-
-  # suffix
-  if suffix:
-    out = f"{out}{suffix}" if out else suffix
-
-  return out
-
-def format_utc(
-  *,
-  dt=None,
-  leftmost="year",
-  rightmost="second",
-  sep=" ",
-  suffix="Z",
-):
+# ----------------------------------------------------------------------
+# Core: Get UTC time as dictionary
+# ----------------------------------------------------------------------
+def get_utc_dict(dt: Optional[datetime.datetime] = None) -> Dict[str,str]:
   if dt is None:
     dt = datetime.datetime.now(datetime.timezone.utc)
   elif dt.tzinfo is None:
     dt = dt.replace(tzinfo=datetime.timezone.utc)
   else:
     dt = dt.astimezone(datetime.timezone.utc)
-  return build_timestamp(dt, leftmost, rightmost, sep, suffix)
+  return {
+    "year": f"{dt.year:04d}"
+    ,"month": f"{dt.month:02d}"
+    ,"day": f"{dt.day:02d}"
+    ,"hour": f"{dt.hour:02d}"
+    ,"minute": f"{dt.minute:02d}"
+    ,"second": f"{dt.second:02d}"
+    ,"scintilla": f"{dt.microsecond:06d}"
+  }
 
-def apply_sed_commands(text, sed_args):
-  """Apply a list of sed s///[g] commands safely."""
-  for sed_cmd in sed_args:
-    m = SED_RE.match(sed_cmd)
-    if not m:
-      print(f"Z: invalid sed command '{sed_cmd}' – must be s/old/new[/g]", file=sys.stderr)
-      raise SystemExit(1)
-    old, new, _, g_flag = m.groups()
-    flags = re.DOTALL if g_flag == "g" else 0
-    try:
-      text = re.sub(old, new, text, count=0 if g_flag else 1, flags=flags)
-    except re.error as e:
-      print(f"Z: invalid regex in sed '{sed_cmd}': {e}", file=sys.stderr)
-      raise SystemExit(1)
-  return text
+# ----------------------------------------------------------------------
+# Core: Format time dictionary using format string
+# ----------------------------------------------------------------------
+_TOKEN_RE = re.compile(r'%([a-z]+)')
 
-def CLI(argv=None):
+def format_timestamp(time_dict: Dict[str,str], fmt: str) -> str:
+  def repl(m):
+    k = m.group(1)
+    return time_dict.get(k, m.group(0))
+  return _TOKEN_RE.sub(repl, fmt)
+
+# ----------------------------------------------------------------------
+# Work Function
+# ----------------------------------------------------------------------
+def make_timestamp(fmt: str = DEFAULT_FORMAT, dt: Optional[datetime.datetime] = None) -> str:
+  return format_timestamp(get_utc_dict(dt), fmt)
+
+# ----------------------------------------------------------------------
+# CLI – Thin wrapper, parses args, order-insensitive
+# ----------------------------------------------------------------------
+def CLI(argv=None) -> int:
   if argv is None:
     argv = sys.argv[1:]
 
-  # No-arg default
   if not argv:
-    out = format_utc(
-      leftmost=DEFAULT_LEFTMOST,
-      rightmost=DEFAULT_RIGHTMOST,
-      sep=DEFAULT_SEP,
-      suffix=DEFAULT_SUFFIX,
-    )
-    print(out)
+    print(make_timestamp())
     return 0
 
-  # Help
-  if argv[0] in ("help", "-h", "--help"):
-    print_usage()
-    return 0
+  # Quick handlers
+  if argv[0] == "version":
+    print(VERSION); return 0
+  if argv[0] in ("help","-h","--help"):
+    print(USAGE); return 0
 
-  # Z Unix
-  if argv[0] == "Unix" and len(argv) == 1:
+  # Parse options in any order
+  fmt = DEFAULT_FORMAT
+  dt_override = None
+
+  for arg in argv:
+    if arg in ("iso","iso8601"):
+      fmt = ISO8601_FORMAT
+      continue
+    if arg == "Unix":
+      # handled at print-time if no override set; leave as-is
+      continue
+    if arg.startswith("Unix-"):
+      try:
+        sec = float(arg.split("-",1)[1])
+      except ValueError:
+        print(f"Z: invalid Unix seconds in '{arg}'", file=sys.stderr)
+        return 1
+      dt_override = datetime.datetime.fromtimestamp(sec, datetime.timezone.utc)
+      continue
+    if arg.startswith("format-"):
+      fmt = arg[len("format-"):]
+      continue
+    # Unknown option
+    print(f"Z: unknown option '{arg}'", file=sys.stderr)
+    return 1
+
+  # Emit: if user asked for "Unix" with no override, print epoch seconds instead
+  if "Unix" in argv and dt_override is None and fmt == DEFAULT_FORMAT and len(argv) == 1:
     print(int(time.time()))
     return 0
 
-  # Unix-<seconds>
-  dt_override = None
-  args = list(argv)
-  if args and args[0].startswith("Unix-"):
-    _, val = args[0].split("-", 1)
-    try:
-      sec = float(val)
-    except ValueError:
-      print(f"Z: invalid Unix seconds '{val}'", file=sys.stderr)
-      return 1
-    dt_override = datetime.datetime.fromtimestamp(sec, datetime.timezone.utc)
-    args = args[1:]
-
-  # Parse options
-  leftmost = DEFAULT_LEFTMOST
-  rightmost = DEFAULT_RIGHTMOST
-  sep = DEFAULT_SEP
-  suffix = DEFAULT_SUFFIX
-  sed_commands = []
-
-  i = 0
-  while i < len(args):
-    arg = args[i]
-
-    if arg == "T":
-      sep = "T"
-    elif arg.startswith("T-"):
-      tail = arg[2:]
-      sep = " " if tail == "" else tail
-
-    elif arg == "leftmost":
-      leftmost = "year"
-    elif arg.startswith("leftmost-"):
-      leftmost = parse_field("leftmost", arg.split("-", 1)[1], "year")
-
-    elif arg == "rightmost":
-      rightmost = "second"
-    elif arg.startswith("rightmost-"):
-      rightmost = parse_field("rightmost", arg.split("-", 1)[1], "second")
-
-    elif arg == "suffix":
-      suffix = "Z"
-    elif arg.startswith("suffix-"):
-      tail = arg.split("-", 1)[1]
-      if tail == "":
-        suffix = "UTC"
-      elif tail == "''":
-        suffix = ""
-      else:
-        suffix = tail
-
-    elif arg == "sed" and i + 1 < len(args):
-      sed_cmd = args[i + 1]
-      if not sed_cmd.startswith("s/"):
-        print(f"Z: 'sed' must be followed by s/old/new[/g], got '{sed_cmd}'", file=sys.stderr)
-        return 1
-      sed_commands.append(sed_cmd)
-      i += 1  # skip the next arg
-
-    else:
-      print(f"Z: unknown option '{arg}'", file=sys.stderr)
-      return 1
-    i += 1
-
-  # Build base timestamp
-  out = format_utc(
-    dt=dt_override,
-    leftmost=leftmost,
-    rightmost=rightmost,
-    sep=sep,
-    suffix=suffix,
-  )
-
-  # Apply sed transformations
-  if sed_commands:
-    out = apply_sed_commands(out, sed_commands)
-
-  print(out)
+  print(make_timestamp(fmt=fmt, dt=dt_override))
   return 0
 
+# ----------------------------------------------------------------------
+# Entry point
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
   raise SystemExit(CLI())
