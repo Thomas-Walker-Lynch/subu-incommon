@@ -1,7 +1,10 @@
 #!/usr/bin/env -S python3 -B
 # -*- mode: python; coding: utf-8; python-indent-offset: 2; indent-tabs-mode: nil -*-
 
-import sys, time, datetime
+import sys
+import time
+import datetime
+import re
 
 USAGE = """
 Z – UTC timestamp helper
@@ -30,11 +33,13 @@ Usage:
     suffix-<s>          Use <s> as the suffix.
     suffix-''           No suffix at all (literal two single-quotes).
 
+    sed s/old/new[/g]   Apply sed-style substitution to the final output.
+                        Can be used multiple times.
+
 Examples:
-  Z T-_ 
-  Z T leftmost-year rightmost-second
-  Z T- leftmost-day rightmost-minute suffix
-  Z leftmost-hour rightmost-second suffix-UTC
+  Z T suffix-Z sed s/:/_/g
+  Z T- leftmost-day rightmost-minute suffix sed s/:/./g
+  Z sed s/:/-/g sed s/ /_/g suffix-''
 """
 
 FIELDS = ["year", "month", "day", "hour", "minute", "second", "scintilla"]
@@ -45,9 +50,11 @@ DEFAULT_RIGHTMOST = "second"
 DEFAULT_SEP = " "
 DEFAULT_SUFFIX = " Z"
 
+# Regex to validate safe sed: only s/pattern/repl/[g]
+SED_RE = re.compile(r"^s/([^/]*)/([^/]*)(/(g?))?$")
+
 def print_usage():
   print(USAGE.strip())
-
 
 def parse_field(label, value, default):
   if not value:
@@ -56,7 +63,6 @@ def parse_field(label, value, default):
     print(f"Z: invalid {label} '{value}' (expected one of: {', '.join(FIELDS)})", file=sys.stderr)
     raise SystemExit(1)
   return value
-
 
 def build_timestamp(dt, leftmost, rightmost, sep, suffix):
   li = FIELD_INDEX[leftmost]
@@ -111,7 +117,7 @@ def build_timestamp(dt, leftmost, rightmost, sep, suffix):
   else:
     out = date_str or time_str or ""
 
-  # suffix is literal; if you want a separator, put it in the suffix
+  # suffix
   if suffix:
     out = f"{out}{suffix}" if out else suffix
 
@@ -133,17 +139,27 @@ def format_utc(
     dt = dt.astimezone(datetime.timezone.utc)
   return build_timestamp(dt, leftmost, rightmost, sep, suffix)
 
-def CLI(argv=None):
-  """
-  Command-line interface for Z.
+def apply_sed_commands(text, sed_args):
+  """Apply a list of sed s///[g] commands safely."""
+  for sed_cmd in sed_args:
+    m = SED_RE.match(sed_cmd)
+    if not m:
+      print(f"Z: invalid sed command '{sed_cmd}' – must be s/old/new[/g]", file=sys.stderr)
+      raise SystemExit(1)
+    old, new, _, g_flag = m.groups()
+    flags = re.DOTALL if g_flag == "g" else 0
+    try:
+      text = re.sub(old, new, text, count=0 if g_flag else 1, flags=flags)
+    except re.error as e:
+      print(f"Z: invalid regex in sed '{sed_cmd}': {e}", file=sys.stderr)
+      raise SystemExit(1)
+  return text
 
-  argv – list of arguments (excluding program name). If None, uses sys.argv[1:].
-  Returns integer exit code.
-  """
+def CLI(argv=None):
   if argv is None:
     argv = sys.argv[1:]
 
-  # No-arg default: most readable form
+  # No-arg default
   if not argv:
     out = format_utc(
       leftmost=DEFAULT_LEFTMOST,
@@ -159,15 +175,15 @@ def CLI(argv=None):
     print_usage()
     return 0
 
-  # Z Unix  -> current Unix time (integer)
+  # Z Unix
   if argv[0] == "Unix" and len(argv) == 1:
     print(int(time.time()))
     return 0
 
-  # Optional override: Unix-<seconds> (format that timestamp)
+  # Unix-<seconds>
   dt_override = None
   args = list(argv)
-  if args[0].startswith("Unix-"):
+  if args and args[0].startswith("Unix-"):
     _, val = args[0].split("-", 1)
     try:
       sec = float(val)
@@ -177,14 +193,17 @@ def CLI(argv=None):
     dt_override = datetime.datetime.fromtimestamp(sec, datetime.timezone.utc)
     args = args[1:]
 
-  # Start from the same defaults that no-arg uses
+  # Parse options
   leftmost = DEFAULT_LEFTMOST
   rightmost = DEFAULT_RIGHTMOST
   sep = DEFAULT_SEP
   suffix = DEFAULT_SUFFIX
+  sed_commands = []
 
-  # Now parse options
-  for arg in args:
+  i = 0
+  while i < len(args):
+    arg = args[i]
+
     if arg == "T":
       sep = "T"
     elif arg.startswith("T-"):
@@ -212,10 +231,20 @@ def CLI(argv=None):
       else:
         suffix = tail
 
+    elif arg == "sed" and i + 1 < len(args):
+      sed_cmd = args[i + 1]
+      if not sed_cmd.startswith("s/"):
+        print(f"Z: 'sed' must be followed by s/old/new[/g], got '{sed_cmd}'", file=sys.stderr)
+        return 1
+      sed_commands.append(sed_cmd)
+      i += 1  # skip the next arg
+
     else:
       print(f"Z: unknown option '{arg}'", file=sys.stderr)
       return 1
+    i += 1
 
+  # Build base timestamp
   out = format_utc(
     dt=dt_override,
     leftmost=leftmost,
@@ -223,6 +252,11 @@ def CLI(argv=None):
     sep=sep,
     suffix=suffix,
   )
+
+  # Apply sed transformations
+  if sed_commands:
+    out = apply_sed_commands(out, sed_commands)
+
   print(out)
   return 0
 
