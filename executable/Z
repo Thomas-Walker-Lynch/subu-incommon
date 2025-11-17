@@ -21,7 +21,7 @@ from typing import Dict, Optional
 FIELDS = ["year","month","day","hour","minute","second","scintilla"]
 FIELD_INDEX = {name:i for i,name in enumerate(FIELDS)}
 
-DEFAULT_FORMAT = "%year-%month-%day_%hour%minute%secondZ"
+DEFAULT_FORMAT = "%year-%month-%day %hour:%minute:%second Z"
 ISO8601_FORMAT = "%year-%month-%dayT%hour:%minute:%second.%scintillaZ"
 
 VERSION = "3.4"
