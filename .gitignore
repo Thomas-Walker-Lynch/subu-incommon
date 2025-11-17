@@ -1,5 +1,5 @@
 
-# no hidden files in the incommon project
+# by convention, repo saved hidden files are not supposed to be placed in 'incommon'
 .*
 
 # well accept for the .git stuff
